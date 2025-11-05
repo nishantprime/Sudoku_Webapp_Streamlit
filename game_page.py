@@ -2,59 +2,50 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
-from functions import solve, fetch_puzzle
+from functions import solve, fetch_puzzle # Your imports are fine
 
 st.set_page_config(layout="centered")
 st.title("Streamlit Sudoku with `AgGrid`")
 
-# ----------------------------------------------------------------------
-# 1. DEFINE YOUR INITIAL PUZZLE HERE
-#
-# Replace this with your 2D list. 
-# Use 0 or None to represent empty cells.
-# ----------------------------------------------------------------------
-
 difficulty = st.selectbox(
     "Select Difficulty :",
     ("easy", "medium", "hard"),
+    key='difficulty_select' # Add a key for reliable state checking
 )
 
 
-initial_puzzle = fetch_puzzle(difficulty)
-
-# --- 2. SESSION STATE INITIALIZATION ---
-if 'board' not in st.session_state:
-    # Convert your 2D list to a Pandas DataFrame
-    # We use string columns ('0', '1', '2'...) for easier CSS targeting
+# --- 2. SESSION STATE LOGIC (FIX 1) ---
+# We must re-initialize the board IF
+# 1. The board doesn't exist yet ('board' not in st.session_state)
+# 2. The difficulty setting has been changed
+if 'board' not in st.session_state or 'puzzle_fetched_for_difficulty' not in st.session_state or st.session_state.puzzle_fetched_for_difficulty != difficulty:
+    initial_puzzle = fetch_puzzle(difficulty)
     st.session_state.board = pd.DataFrame(
         initial_puzzle,
         columns=[str(i) for i in range(9)],
-        dtype=object  # Use object type to allow for 0, None, or ints
-    ).replace(0, None) # Use None for empty cells, agGrid handles this well
+        dtype=object
+    ).replace(0, None)
 
 
-# --- 3. STYLING (The 3x3 Grid) ---
-
-# Inject custom CSS for the 3x3 thick borders
+# --- 3. STYLING (FIX 2) ---
+# We will use the 'balham' theme.
+# YOU MUST change the CSS selectors from .ag-theme-streamlit to .ag-theme-balham
 css = """
 <style>
-    /* Add a thicker border to the right of columns '2' and '5' */
-    .ag-theme-streamlit .ag-cell[col-id="2"],
-    .ag-theme-streamlit .ag-cell[col-id="5"] {
+    /* Target the 'balham' theme */
+    .ag-theme-balham .ag-cell[col-id="2"],
+    .ag-theme-balham .ag-cell[col-id="5"] {
         border-right: 3px solid #888 !important;
     }
 
-    /* Add a thicker border to the bottom of rows 2 and 5 */
-    /* We use a JsCode function to add a class 'ag-bottom-border' to these rows */
-    .ag-theme-streamlit .ag-row.ag-bottom-border .ag-cell {
+    .ag-theme-balham .ag-row.ag-bottom-border .ag-cell {
         border-bottom: 3px solid #888 !important;
     }
 </style>
 """
 st.markdown(css, unsafe_allow_html=True)
 
-# Use JsCode to add a class to rows 2 and 5
-# This function is passed to AgGrid and runs in the browser
+# This JsCode is correct and unchanged
 add_row_border = JsCode("""
 function(params) {
     if (params.node.rowIndex === 2 || params.node.rowIndex === 5) {
@@ -68,54 +59,52 @@ function(params) {
 # --- 4. AGGRID CONFIGURATION ---
 gb = GridOptionsBuilder.from_dataframe(st.session_state.board)
 
-# Configure all columns
 gb.configure_default_column(
     editable=True,
     width=45,
     height=45,
     resizable=False,
     singleClickEdit=True,
-    # Restrict input to numbers 1-9 (and None/clear)
     cellEditor='agNumberCellEditor',
     cellEditorParams={'min': 1, 'max': 9, 'precision': 0},
-    # Center-align the text in cells
-    cellStyle={'textAlign': 'center', 'fontSize': '18px'}
+    cellStyle={'textAlign': 'center', 'fontSize': '18px', 'lineHeight': '40px'} # Added lineHeight for vertical center
 )
 
-# Apply the row-border-adding function
 gb.configure_grid_options(getRowClass=add_row_border)
-
 gridOptions = gb.build()
 
 
-# --- 5. RENDER THE GRID ---
+# --- 5. RENDER THE GRID (FIX 2) ---
 st.write("Enter numbers (1-9) into the grid. Press Enter to save a cell.")
 
 grid_response = AgGrid(
     st.session_state.board,
     gridOptions=gridOptions,
-    height=425,  # 9 rows * 45px + 2*3px border + padding
-    width=425,   # 9 cols * 45px + 2*3px border + padding
-    data_return_mode='AS_INPUT',      # Returns a DataFrame
+    height=425,
+    width=425,
+    data_return_mode='AS_INPUT',
+    update_mode='VALUE_CHANGED',
     
-    # --- THIS IS THE CORRECTED LINE ---
-    update_mode='VALUE_CHANGED',      # Triggers on each edit
+    # --- HERE ARE THE STYLING FIXES ---
+    fit_columns_on_grid_load=False, # <-- MUST be False to use custom widths
+    theme='balham',                 # <-- Use a theme that allows custom styles
     # ----------------------------------
     
-    fit_columns_on_grid_load=True,    # Fit columns to width
-    allow_unsafe_jscode=True,         # Required for getRowClass
-    enable_enterprise_modules=False,
-    theme='streamlit'                 # Use Streamlit's native theme
+    allow_unsafe_jscode=True,
+    enable_enterprise_modules=False
 )
 
 # --- 6. GET DATA BACK AND STORE IT ---
-# The grid_response['data'] contains the new state of the DataFrame
-# We overwrite the session_state to save the user's edit
 st.session_state.board = grid_response['data']
 
 
-# You would now pass 'current_board_list' to your checking/solving functions
+# --- 7. (FOR YOU) USE THE DATA ---
 if st.button("Check My Solution"):
-    # result = your_validation_function(current_board_list)
+    # Convert DataFrame back to a 2D list, filling empty cells (None) with 0
+    current_board_list = st.session_state.board.fillna(0).astype(int).values.tolist()
+    
+    # result = solve(current_board_list) # Use your function
     # st.write(result)
-    st.info("Check button clicked! Use the `current_board_list` variable for your logic.")
+    
+    st.info("Check button clicked! The board is ready for validation.")
+    st.write(current_board_list)
