@@ -114,23 +114,6 @@ grid_response = AgGrid(
 st.session_state.board = grid_response['data']
 
 
-# --- 7. (FOR YOU) USE THE DATA ---
-st.divider()
-st.subheader("Current Board State (for your logic)")
-
-# You can now access the current board for your validation functions
-current_board_df = st.session_state.board
-
-# Convert DataFrame back to a 2D list, filling empty cells (None) with 0
-# This gives you the format you're used to
-current_board_list = current_board_df.fillna(0).astype(int).values.tolist()
-
-st.write("This is the current board as a Pandas DataFrame:")
-st.dataframe(current_board_df)
-
-st.write("And as a 2D Python list (with 0 for empty):")
-st.write(current_board_list)
-
 # You would now pass 'current_board_list' to your checking/solving functions
 if st.button("Check My Solution"):
     # result = your_validation_function(current_board_list)
