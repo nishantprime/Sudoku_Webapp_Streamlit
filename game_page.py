@@ -90,6 +90,7 @@ gb.configure_grid_options(getRowClass=add_row_border)
 
 gridOptions = gb.build()
 
+
 # --- 5. RENDER THE GRID ---
 st.write("Enter numbers (1-9) into the grid. Press Enter to save a cell.")
 
@@ -99,7 +100,11 @@ grid_response = AgGrid(
     height=425,  # 9 rows * 45px + 2*3px border + padding
     width=425,   # 9 cols * 45px + 2*3px border + padding
     data_return_mode='AS_INPUT',      # Returns a DataFrame
-    update_mode='cellValueChanged',   # Triggers on each edit
+    
+    # --- THIS IS THE CORRECTED LINE ---
+    update_mode='VALUE_CHANGED',      # Triggers on each edit
+    # ----------------------------------
+    
     fit_columns_on_grid_load=True,    # Fit columns to width
     allow_unsafe_jscode=True,         # Required for getRowClass
     enable_enterprise_modules=False,
