@@ -26,13 +26,9 @@ if 'board' not in st.session_state or 'puzzle_fetched_for_difficulty' not in st.
         dtype=object
     ).replace(0, None)
 
-
-# --- 3. STYLING (FIX 2) ---
-# We will use the 'balham' theme.
-# YOU MUST change the CSS selectors from .ag-theme-streamlit to .ag-theme-balham
+# --- 3. STYLING (This part is correct) ---
 css = """
 <style>
-    /* Target the 'balham' theme */
     .ag-theme-balham .ag-cell[col-id="2"],
     .ag-theme-balham .ag-cell[col-id="5"] {
         border-right: 3px solid #888 !important;
@@ -45,7 +41,6 @@ css = """
 """
 st.markdown(css, unsafe_allow_html=True)
 
-# This JsCode is correct and unchanged
 add_row_border = JsCode("""
 function(params) {
     if (params.node.rowIndex === 2 || params.node.rowIndex === 5) {
@@ -56,55 +51,49 @@ function(params) {
 """)
 
 
-# --- 4. AGGRID CONFIGURATION ---
+# --- 4. AGGRID CONFIGURATION (THIS IS THE FIX) ---
 gb = GridOptionsBuilder.from_dataframe(st.session_state.board)
 
 gb.configure_default_column(
     editable=True,
     width=45,
-    height=45,
+    # height=45,  <-- REMOVED. This was the error.
     resizable=False,
     singleClickEdit=True,
     cellEditor='agNumberCellEditor',
     cellEditorParams={'min': 1, 'max': 9, 'precision': 0},
-    cellStyle={'textAlign': 'center', 'fontSize': '18px', 'lineHeight': '40px'} # Added lineHeight for vertical center
+    cellStyle={'textAlign': 'center', 'fontSize': '18px'} # Removed lineHeight
 )
 
-gb.configure_grid_options(getRowClass=add_row_border)
+# Apply the row-border-adding function AND set rowHeight
+gb.configure_grid_options(
+    getRowClass=add_row_border,
+    rowHeight=45  # <-- THIS IS THE FIX. It makes the rows 45px tall.
+)
 gridOptions = gb.build()
 
 
-# --- 5. RENDER THE GRID (FIX 2) ---
+# --- 5. RENDER THE GRID (This part is correct) ---
 st.write("Enter numbers (1-9) into the grid. Press Enter to save a cell.")
 
 grid_response = AgGrid(
     st.session_state.board,
     gridOptions=gridOptions,
-    height=425,
-    width=425,
+    height=425,  # 9 rows * 45px + 2*3px borders + padding
+    width=425,   # 9 cols * 45px + 2*3px borders + padding
     data_return_mode='AS_INPUT',
     update_mode='VALUE_CHANGED',
-    
-    # --- HERE ARE THE STYLING FIXES ---
-    fit_columns_on_grid_load=False, # <-- MUST be False to use custom widths
-    theme='balham',                 # <-- Use a theme that allows custom styles
-    # ----------------------------------
-    
+    fit_columns_on_grid_load=False, # Correct
+    theme='balham',                 # Correct
     allow_unsafe_jscode=True,
     enable_enterprise_modules=False
 )
 
-# --- 6. GET DATA BACK AND STORE IT ---
+# --- 6. GET DATA BACK (This part is correct) ---
 st.session_state.board = grid_response['data']
 
-
-# --- 7. (FOR YOU) USE THE DATA ---
+# --- 7. (FOR YOU) USE THE DATA (This part is correct) ---
 if st.button("Check My Solution"):
-    # Convert DataFrame back to a 2D list, filling empty cells (None) with 0
     current_board_list = st.session_state.board.fillna(0).astype(int).values.tolist()
-    
-    # result = solve(current_board_list) # Use your function
-    # st.write(result)
-    
     st.info("Check button clicked! The board is ready for validation.")
     st.write(current_board_list)
