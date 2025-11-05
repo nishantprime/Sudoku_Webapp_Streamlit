@@ -13,7 +13,14 @@ st.title("Streamlit Sudoku with `AgGrid`")
 # Replace this with your 2D list. 
 # Use 0 or None to represent empty cells.
 # ----------------------------------------------------------------------
-initial_puzzle = fetch_puzzle()
+
+difficulty = st.selectbox(
+    "Select Difficulty :",
+    ("easy", "medium", "hard"),
+)
+
+
+initial_puzzle = fetch_puzzle(difficulty)
 
 # --- 2. SESSION STATE INITIALIZATION ---
 if 'board' not in st.session_state:
