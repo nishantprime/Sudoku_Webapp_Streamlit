@@ -141,4 +141,4 @@ def solve():
                     progress = True
                     puzzle[b[0][0] -1][b[0][1] -1] = s
                     print('filled a block -',s,'(',b[0][0],b[0][1],')')
-        return puzzle
+    return puzzle
