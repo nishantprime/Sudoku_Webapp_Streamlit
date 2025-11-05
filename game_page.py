@@ -13,17 +13,7 @@ st.title("Streamlit Sudoku with `AgGrid`")
 # Replace this with your 2D list. 
 # Use 0 or None to represent empty cells.
 # ----------------------------------------------------------------------
-initial_puzzle = [
-    [5, 3, 0, 0, 7, 0, 0, 0, 0],
-    [6, 0, 0, 1, 9, 5, 0, 0, 0],
-    [0, 9, 8, 0, 0, 0, 0, 6, 0],
-    [8, 0, 0, 0, 6, 0, 0, 0, 3],
-    [4, 0, 0, 8, 0, 3, 0, 0, 1],
-    [7, 0, 0, 0, 2, 0, 0, 0, 6],
-    [0, 6, 0, 0, 0, 0, 2, 8, 0],
-    [0, 0, 0, 4, 1, 9, 0, 0, 5],
-    [0, 0, 0, 0, 8, 0, 0, 7, 9]
-]
+initial_puzzle = fetch_puzzle()
 
 # --- 2. SESSION STATE INITIALIZATION ---
 if 'board' not in st.session_state:
