@@ -16,19 +16,7 @@ difficulty = st.selectbox(
 
 # --- 2. SESSION STATE LOGIC (This part is correct) ---
 if 'board' not in st.session_state or 'puzzle_fetched_for_difficulty' not in st.session_state or st.session_state.puzzle_fetched_for_difficulty != difficulty:
-    initial_puzzle = fetch_puzzle(difficulty)
-    # --- MOCK FUNCTION (in case fetch_puzzle isn't imported) ---
-    # if 'fetch_puzzle' not in globals():
-    #     st.session_state.puzzle_fetched_for_difficulty = difficulty
-    #     initial_puzzle = [
-    #         [5, 3, 0, 0, 7, 0, 0, 0, 0], [6, 0, 0, 1, 9, 5, 0, 0, 0], [0, 9, 8, 0, 0, 0, 0, 6, 0],
-    #         [8, 0, 0, 0, 6, 0, 0, 0, 3], [4, 0, 0, 8, 0, 3, 0, 0, 1], [7, 0, 0, 0, 2, 0, 0, 0, 6],
-    #         [0, 6, 0, 0, 0, 0, 2, 8, 0], [0, 0, 0, 4, 1, 9, 0, 0, 5], [0, 0, 0, 0, 8, 0, 0, 7, 9]
-    #     ]
-    # else:
-    #     initial_puzzle = fetch_puzzle(difficulty)
-    # -------------------------------------------------------------
-        
+    initial_puzzle = fetch_puzzle(difficulty)        
     st.session_state.board = pd.DataFrame(
         initial_puzzle,
         columns=[str(i) for i in range(9)],
@@ -97,8 +85,8 @@ grid_response = AgGrid(
     gridOptions=gridOptions,
     
     # --- FIXES ---
-    height=415,  # (9 rows * 45px) + (2 borders * 3px) + 4px padding
-    width=415,   # (9 cols * 45px) + (2 borders * 3px) + 4px padding
+    height=415, 
+    width=415, 
     theme='alpine-dark',            # <-- FIX: CHANGED THEME
     # -------------
 
