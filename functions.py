@@ -115,7 +115,7 @@ def possible_place_in_block(n,b):
     return possible_positions
 
 
-def solve():
+def solve(puzzle):
     progress = True
     while progress:
         progress = False
